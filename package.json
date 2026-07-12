@@ -1,0 +1,12 @@
+{
+  "name": "ht-billboard-sales-manager",
+  "version": "1.0.0",
+  "description": "HT Advertising - Billboard Sales & Database Desktop Manager",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^28.2.0"
+  }
+}

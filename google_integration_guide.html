@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دليل ربط البرنامج بأدوات جوجل - HT Advertising</title>
+    <!-- Google Fonts: Cairo -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #E50914;
+            --primary-hover: #B91C1C;
+            --bg-body: #0F0F12;
+            --bg-card: #1A1A22;
+            --text-main: #FFFFFF;
+            --text-muted: #A0A0AB;
+            --border: rgba(255,255,255,0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            padding: 40px 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 30px;
+        }
+
+        .logo {
+            font-size: 50px;
+            color: var(--primary);
+            margin-bottom: 15px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.9; }
+        }
+
+        h1 {
+            font-size: 26px;
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            transition: transform 0.25s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        h2 {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 8px;
+        }
+
+        ol {
+            margin-right: 20px;
+        }
+
+        li {
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        li strong {
+            color: #fff;
+        }
+
+        code {
+            background-color: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 13px;
+            color: #38BDF8;
+            direction: ltr;
+            display: inline-block;
+        }
+
+        pre {
+            background-color: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border);
+            padding: 16px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 13px;
+            color: #34D399;
+            direction: ltr;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        .badge {
+            background-color: rgba(229, 9, 20, 0.15);
+            color: var(--primary);
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 800;
+            display: inline-block;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <div class="logo"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+            <h1>دليل ربط البرنامج بأدوات جوجل (Google & Firebase)</h1>
+            <p class="subtitle">دليل إعداد وتشغيل تطبيق مبيعات لوحات الطرق أونلاين مجاناً</p>
+        </header>
+
+        <!-- Step 1 -->
+        <div class="card">
+            <h2><i class="fa-solid fa-folder-plus"></i> الجزء الأول: إنشاء مشروع سحابي على جوجل (Google Firebase)</h2>
+            <ol>
+                <li>قم بزيارة موقع <strong><a href="https://console.firebase.google.com" target="_blank" style="color:var(--primary); text-decoration:none;">Firebase Console</a></strong> وسجل الدخول بحساب الجيميل الخاص بك.</li>
+                <li>اضغط على زر <strong>Create a project</strong> (إنشاء مشروع).</li>
+                <li>اكتب اسماً للمشروع (مثال: <code>HT-Advertising-Suez</code>) ثم اضغط <strong>Continue</strong>.</li>
+                <li>يمكنك تفعيل أو إلغاء تفعيل Google Analytics (حسب رغبتك) ثم اضغط <strong>Create Project</strong>.</li>
+                <li>انتظر ثوانٍ حتى يتم تهيئة خوادم جوجل، ثم اضغط <strong>Continue</strong> لتفتح لك لوحة التحكم السحابية.</li>
+            </ol>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="card">
+            <h2><i class="fa-solid fa-key"></i> الجزء الثاني: تفعيل تسجيل الدخول بجوجل (Google Sign-In)</h2>
+            <ol>
+                <li>من القائمة الجانبية اليسرى في لوحة Firebase، اضغط على <strong>Build</strong> ثم اختر <strong>Authentication</strong> (المصادقة).</li>
+                <li>اضغط على زر <strong>Get Started</strong> للبدء.</li>
+                <li>من تبويب <strong>Sign-in method</strong>، اختر مقدم الخدمة <strong>Google</strong>.</li>
+                <li>قم بتشغيل خيار التفعيل (<strong>Enable</strong>).</li>
+                <li>اكتب اسم المشروع الذي سيظهر للمستخدمين عند تسجيل الدخول، واختر بريد الدعم الخاص بك.</li>
+                <li>اضغط على زر <strong>Save</strong> (حفظ).</li>
+            </ol>
+            <span class="badge">الآن أصبح إيميل جوجل الموحد ht.suez.ads@gmail.com مصرحاً له بالدخول الآمن!</span>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="card">
+            <h2><i class="fa-solid fa-database"></i> الجزء الثالث: إنشاء قاعدة بيانات جوجل (Cloud Firestore)</h2>
+            <ol>
+                <li>من القائمة الجانبية اليسرى، اضغط على <strong>Build</strong> ثم اختر <strong>Firestore Database</strong>.</li>
+                <li>اضغط على زر <strong>Create database</strong> (إنشاء قاعدة بيانات).</li>
+                <li>اختر موقع الخادم القريب منك (مثل أوروبا) ثم اضغط <strong>Next</strong>.</li>
+                <li>اختر البدء في <strong>Test Mode</strong> (وضع التجربة) لكي تمنح البرنامج صلاحية القراءة والكتابة مباشرة بدون قيود، ثم اضغط <strong>Create</strong>.</li>
+                <li>بمجرد اكتمال الإنشاء، اذهب لتبويب <strong>Rules</strong> في الأعلى وتأكد من كتابة قواعد القراءة والكتابة كالتالي:</li>
+            </ol>
+            <pre>rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}</pre>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="card">
+            <h2><i class="fa-solid fa-link"></i> الجزء الرابع: الحصول على مفاتيح الربط ووضعها في البرنامج</h2>
+            <ol>
+                <li>في لوحة تحكم Firebase، اضغط على أيقونة الترس ⚙️ بجانب Project Overview واختر <strong>Project settings</strong>.</li>
+                <li>انزل لأسفل الصفحة تحت قسم Your apps واضغط على أيقونة الويب <code>&lt;/&gt;</code> لتسجيل تطبيقك.</li>
+                <li>اكتب اسماً للتطبيق (مثل: <code>HT-App</code>) ثم اضغط <strong>Register app</strong>.</li>
+                <li>انسخ المفتاحين التاليين فقط من الكود البرمجي الذي سيظهر لك:
+                    <br>
+                    - <code>ApiKey</code>
+                    <br>
+                    - <code>ProjectId</code>
+                </li>
+                <li>افتح برنامجك وسجل الدخول كـ <strong>المدير العام</strong> (<code>admin</code>).</li>
+                <li>اذهب إلى قسم <strong>إعدادات النظام والنسخ</strong> من شريط التنقل.</li>
+                <li>تحت قسم <strong>إعداد الاتصال السحابي (Firebase)</strong>، قم بلصق المفتاحين واضغط <strong>حفظ وتطبيق الاتصال</strong>.</li>
+            </ol>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="card">
+            <h2><i class="fa-solid fa-share-nodes"></i> الجزء الخامس: رفع الاستضافة ونشر الرابط للموظفين مجاناً</h2>
+            <ol>
+                <li>قم بزيارة موقع <strong><a href="https://www.netlify.com" target="_blank" style="color:var(--primary); text-decoration:none;">Netlify</a></strong> وسجل حساباً مجانياً.</li>
+                <li>اذهب لقسم <strong>Sites</strong> في لوحة تحكم Netlify.</li>
+                <li>قم بسحب مجلد مشروعك بالكامل <code>billboard-sales-manager</code> وأفلته في الصندوق المخصص للرفع السريع.</li>
+                <li>سيعطيك الموقع فوراً رابطاً عاماً ومحمياً للموقع (مثل: <code>https://ht-adv-suez.netlify.app</code>).</li>
+                <li>أرسل الرابط لموظفيك الـ 10 وابدأوا العمل المشترك فوراً ومباشرة عبر الإنترنت!</li>
+            </ol>
+        </div>
+    </div>
+
+</body>
+</html>

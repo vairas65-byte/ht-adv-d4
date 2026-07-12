@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HT ADVERTISING - نظام إدارة لوحات الإعلانات</title>
+    
+    <!-- Google Fonts: Cairo -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Leaflet.js Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    
+    <!-- Leaflet Rotate CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-rotate@0.2.8/dist/leaflet-rotate.css"/>
+    
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    
+    <!-- 1. Google Auth Login Overlay Screen -->
+    <div id="loginScreen" class="login-screen-overlay">
+        <div class="login-box">
+            <div class="login-logo-container">
+                <img src="logo.png" alt="HT ADVERTISING Logo" class="login-logo">
+                <h1>HT ADVERTISING</h1>
+                <p>نظام الإدارة الذكي للوحات الإعلانات - كورنيش السويس</p>
+            </div>
+            
+            <div class="login-actions">
+                <form id="loginForm" style="display:flex; flex-direction:column; gap:16px; width:100%;">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label for="loginUsername" style="text-align:right; font-weight:700;"><i class="fa-solid fa-user text-red"></i> اسم المستخدم (Username) *</label>
+                        <input type="text" id="loginUsername" class="form-control" required placeholder="مثال: admin أو emp1" style="direction:ltr; text-align:left; font-weight:600; padding:10px 14px;">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label for="loginPassword" style="text-align:right; font-weight:700;"><i class="fa-solid fa-lock text-red"></i> كلمة المرور (Password) *</label>
+                        <input type="password" id="loginPassword" class="form-control" required placeholder="أدخل كلمة المرور" style="direction:ltr; text-align:left; font-weight:600; padding:10px 14px;">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full-width" style="padding:12px; font-size:14px; font-weight:700; border-radius:30px;">
+                        <i class="fa-solid fa-arrow-right-to-bracket"></i> تسجيل الدخول للنظام
+                    </button>
+                </form>
+                
+                <div class="login-divider" style="margin: 15px 0 10px 0; text-align: center; font-size: 11px; color: var(--text-muted); font-weight: 700; width: 100%; border-bottom: 1px solid var(--border-color); line-height: 0.1em;"><span style="background: var(--bg-card); padding: 0 10px;">أو الدخول المباشر</span></div>
+                
+                <button type="button" class="btn btn-secondary btn-full-width" id="btnGoogleSignIn" style="border-radius:30px; padding:10px; font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:8px; background:#ffffff; color:#222; border:1px solid #dcdcdc; cursor:pointer; width:100%; transition: all 0.2s ease;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google Logo" style="width:16px; height:16px;">
+                    تسجيل الدخول باستخدام حساب جوجل
+                </button>
+            </div>
+            
+            <div class="login-footer">
+                <p>مرتبط بقاعدة بيانات سحابية وتزامنية لحظية عبر الإنترنت &copy; 2026</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Main Application Container (Visible after login) -->
+    <div class="app-container" style="display:none;" id="mainAppContainer">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <img src="logo.png" alt="HT Logo" class="logo-image-sidebar">
+                    <div>
+                        <h2>HT ADV.</h2>
+                        <span class="company-subname">ADVERTISING</span>
+                    </div>
+                </div>
+                <p class="tagline">نظام إدارة مبيعات لوحات الطرق</p>
+            </div>
+            
+            <!-- Authenticated User Profile info -->
+            <div class="user-profile-card">
+                <div class="user-avatar" id="appUserAvatar">
+                    <i class="fa-solid fa-user-tie"></i>
+                </div>
+                <div class="user-info">
+                    <span class="user-label" id="appUserRole">المدير العام</span>
+                    <span class="user-name" id="appUserName">جاري التحميل...</span>
+                    <span class="user-email" id="appUserEmail">user@domain.com</span>
+                </div>
+                <button class="btn-logout" id="btnLogout" title="تسجيل الخروج">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
+            </div>
+            
+            <!-- Connection Status Badge -->
+            <div class="connection-status-badge" id="syncStatus">
+                <span class="pulse-indicator online"></span>
+                <span id="syncStatusText">متصل بالإنترنت (مزامنة فورية)</span>
+            </div>
+            
+            <!-- Navigation Links -->
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-target="mapPanel">
+                    <i class="fa-solid fa-map-location-dot"></i>
+                    <span>خريطة القمر الصناعي</span>
+                </a>
+                <a href="#" class="nav-item" data-target="dashboardPanel">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>لوحة الإحصائيات</span>
+                </a>
+                <a href="#" class="nav-item" data-target="reportsPanel">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <span>جدول الحجوزات والعملاء</span>
+                    <span class="badge badge-avail" id="unreadBookingsBadge">0</span>
+                </a>
+                <a href="#" class="nav-item" data-target="installmentsPanel">
+                    <i class="fa-solid fa-credit-card"></i>
+                    <span>تحصيل الأقساط الشهرية</span>
+                </a>
+                <a href="#" class="nav-item" data-target="employeePanel" id="navEmployeeLink">
+                    <i class="fa-solid fa-users-gear"></i>
+                    <span>تقييم الموظفين</span>
+                </a>
+                <a href="#" class="nav-item" data-target="settingsPanel" id="navSettingsLink">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>إعدادات النظام والنسخ</span>
+                </a>
+                <a href="#" class="nav-item" data-target="cloudPanel" id="navCloudLink">
+                    <i class="fa-solid fa-cloud-arrow-up" style="color:#38bdf8;"></i>
+                    <span>الاتصال السحابي</span>
+                </a>
+                <a href="#" class="nav-item" data-target="chatPanel">
+                    <i class="fa-solid fa-comments"></i>
+                    <span>غرفة المحادثات</span>
+                    <span class="badge badge-avail" id="unreadMessagesBadge" style="display:none; background-color:var(--primary-color);">0</span>
+                </a>
+                <a href="#" class="nav-item" data-target="customersPanel">
+                    <i class="fa-solid fa-address-book"></i>
+                    <span>دليل العملاء</span>
+                </a>
+                <a href="#" class="nav-item" data-target="sizesPanel">
+                    <i class="fa-solid fa-ruler-combined"></i>
+                    <span>المقاسات المستخدمة</span>
+                </a>
+                <a href="#" class="nav-item" data-target="employeesMgmtPanel" id="navEmployeesMgmtLink" style="display:none;">
+                    <i class="fa-solid fa-user-shield" style="color:var(--primary-color);"></i>
+                    <span>إدارة الصلاحيات</span>
+                </a>
+            </nav>
+            
+            <!-- Expiration Alert Widget -->
+            <div class="alert-widget" id="alertWidget">
+                <div class="alert-widget-header">
+                    <i class="fa-solid fa-bell fa-bell-animate"></i>
+                    <span>تنبيهات انتهاء الإعلانات (10 أيام)</span>
+                    <span class="alert-count-badge" id="alertCount">0</span>
+                </div>
+                <div class="alert-widget-body" id="alertWidgetBody">
+                    <!-- Dynamic items -->
+                </div>
+            </div>
+            
+            <div class="sidebar-footer">
+                <p>إصدار العمل النهائي v1.0 (الإنتاجي)</p>
+                <p>&copy; 2026 جميع الحقوق محفوظة لشركة HT</p>
+            </div>
+        </aside>
+        
+        <!-- Main Content Area -->
+        <main class="main-content">
+            
+            <!-- Topbar -->
+            <header class="topbar">
+                <div class="topbar-title">
+                    <h1 id="panelTitle">الخريطة التفاعلية لكورنيش السويس</h1>
+                    <p id="panelSubtitle">عرض وحجز 200 نقطة إعلانية على طول الكورنيش</p>
+                </div>
+                <div class="topbar-actions">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="globalSearch" placeholder="بحث برقم اللوحة أو اسم العميل...">
+                    </div>
+                    
+                </div>
+            </header>
+            
+            <!-- Notification Toast Container -->
+            <div id="toastContainer" class="toast-container"></div>
+            
+            <!-- Direct Urgent Management Alerts (Visible for regular employees when GM pings them) -->
+            <div id="directEmployeeAlert" class="direct-employee-alert" style="display:none;">
+                <div class="direct-alert-content">
+                    <i class="fa-solid fa-circle-exclamation fa-fade text-red" style="font-size: 18px; color:var(--primary-color);"></i>
+                    <span><strong>تنبيه إداري عاجل من المدير العام:</strong> يرجى مراجعة وتحصيل القسط المتأخر للوحة <span id="directAlertBillboardId" style="color:var(--primary-color); font-weight:800;">#000</span> للعميل (<span id="directAlertClientName" style="font-weight:800;">اسم العميل</span>).</span>
+                </div>
+                <button class="btn btn-danger-filled" id="btnAcknowledgeAlert" style="padding: 6px 12px; font-size: 11px; border-radius: 6px;">
+                    <i class="fa-solid fa-check"></i> جاري المتابعة والتحصيل
+                </button>
+            </div>
+            
+            <!-- Content Panels -->
+            <div class="panel-container">
+                
+                <!-- Panel 1: Interactive Map -->
+                <section id="mapPanel" class="content-panel active">
+                    <div class="map-layout">
+                        <div class="map-wrapper" style="position: relative;">
+                            <div id="map"></div>
+                            <!-- 3D View Toggle Button (Google Earth Style) -->
+                            <button id="btnToggle3D" class="control-3d-btn" style="position: absolute; top: 10px; right: 10px; z-index: 1000; display: flex; align-items: center; padding: 0 8px; width: auto;" title="عرض ثلاثي الأبعاد 3D (Google Earth)">
+                                <i class="fa-solid fa-cube"></i>
+                                <span style="font-size: 11px; font-family: 'Cairo'; font-weight: 800; margin-right: 6px; margin-left: 2px;">عرض ثلاثي الأبعاد</span>
+                            </button>
+                            <!-- Add Billboard Button (Admin Only) -->
+                            <button id="btnAddBillboard" class="control-3d-btn" style="position: absolute; top: 10px; right: 145px; z-index: 1000; display: none; align-items: center; padding: 0 10px; width: auto; background-color: var(--primary-color); color: white;" title="إضافة لوحة جديدة">
+                                <i class="fa-solid fa-circle-plus"></i>
+                                <span style="font-size: 11px; font-family: 'Cairo'; font-weight: 800; margin-right: 6px; margin-left: 2px;">إضافة لوحة جديدة</span>
+                            </button>
+                        </div>
+                        <div class="map-sidebar">
+                            <div class="card map-legend-card">
+                                <h3>دليل الرموز</h3>
+                                <ul class="legend-list" id="mapLegendList">
+                                    <!-- Populated dynamically in app.js -->
+                                </ul>
+                            </div>
+                            
+                            <div class="card quick-info-card">
+                                <h3>معلومات النقطة المحددة</h3>
+                                <div id="quickInfoContent" class="quick-info-placeholder">
+                                    <i class="fa-solid fa-map-pin"></i>
+                                    <p>انقر على أي نقطة إعلانية في الخريطة لعرض تفاصيلها أو تسجيل حجز جديد.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Panel 2: Dashboard -->
+                <section id="dashboardPanel" class="content-panel">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon bg-gray-light">
+                                <i class="fa-solid fa-signs-post text-red"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>200</h3>
+                                <p>إجمالي اللوحات</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon bg-green-light">
+                                <i class="fa-solid fa-check-double text-green"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="statBookedCount">0</h3>
+                                <p>اللوحات المحجوزة</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon bg-red-light">
+                                <i class="fa-solid fa-circle-xmark text-red"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="statAvailableCount">200</h3>
+                                <p>اللوحات المتاحة</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon bg-orange-light">
+                                <i class="fa-solid fa-triangle-exclamation text-orange"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="statExpiringCount">0</h3>
+                                <p>إعلانات أوشكت على الانتهاء</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Admin Overdue Collection Alert Reports (Sent to General Manager) -->
+                    <div class="card admin-overdue-alerts-card" id="adminOverdueCard" style="display:none; border-color: #fca5a5; background-color: #fef2f2; margin-bottom: 24px;">
+                        <h3 style="color:#b91c1c; margin-bottom: 8px;"><i class="fa-solid fa-circle-exclamation text-red"></i> تقارير التأخر في تحصيل الأقساط (تنبيهات المدير العام)</h3>
+                        <p style="font-size:12px; color:#7f1d1d; margin-bottom:16px;">تنبيه: الأقساط التالية تجاوزت موعد استحقاق السداد ولم يتم تحصيلها بواسطة الموظف المسؤول:</p>
+                        <div class="table-wrapper">
+                            <table class="report-table" style="background:transparent; text-align:right;">
+                                <thead>
+                                    <tr style="background:#fee2e2;">
+                                        <th style="color:#7f1d1d;">رقم اللوحة</th>
+                                        <th style="color:#7f1d1d;">العميل</th>
+                                        <th style="color:#7f1d1d;">الموظف المسؤول</th>
+                                        <th style="color:#7f1d1d;">تاريخ الاستحقاق</th>
+                                        <th style="color:#7f1d1d;">مبلغ القسط (ج.م)</th>
+                                        <th style="color:#7f1d1d;">أيام التأخير</th>
+                                        <th style="color:#7f1d1d; text-align:center;">إجراءات تنبيه الموظف</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminOverdueTableBody">
+                                    <!-- Dynamic warning alert entries -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="charts-grid">
+                        <div class="card chart-card">
+                            <h3>حالة إشغال اللوحات</h3>
+                            <div class="chart-container">
+                                <canvas id="occupancyChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="card chart-card">
+                            <h3>توزيع المبيعات شهرياً (ج.م)</h3>
+                            <div class="chart-container">
+                                <canvas id="revenueChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Panel 3: Reports -->
+                <section id="reportsPanel" class="content-panel">
+                    <div class="card report-control-card">
+                        <div class="report-filters">
+                            <div class="filter-group">
+                                <label for="filterStatus">حالة الحجز</label>
+                                <select id="filterStatus" class="form-control">
+                                    <option value="all">كل اللوحات</option>
+                                    <option value="booked">المحجوزة فقط</option>
+                                    <option value="available">المتاحة فقط</option>
+                                    <option value="expiring">المنتهية خلال 10 أيام</option>
+                                </select>
+                            </div>
+                            <div class="filter-group" id="adminReportFilterGroup">
+                                <label for="filterEmployee">الموظف المسؤول</label>
+                                <select id="filterEmployee" class="form-control">
+                                    <option value="all">كل الموظفين</option>
+                                    <!-- Populated dynamically -->
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="filterClient"><i class="fa-solid fa-user-tie"></i> زر العملاء (تصفية)</label>
+                                <select id="filterClient" class="form-control" style="font-weight: 700;">
+                                    <option value="all">كل العملاء</option>
+                                    <!-- Populated dynamically -->
+                                </select>
+                            </div>
+                            <div class="filter-group" style="justify-content: flex-end; display: flex;">
+                                <button type="button" class="btn btn-secondary" id="btnSortReportClients" style="height: 38px; align-self: flex-end; padding: 0 12px; display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; white-space: nowrap;">
+                                    <i class="fa-solid fa-sort-alpha-down"></i> فرز العملاء أبجدياً
+                                </button>
+                            </div>
+                            <div class="filter-group-buttons">
+                                <button class="btn btn-secondary" id="btnExportCSV">
+                                    <i class="fa-solid fa-file-excel"></i>
+                                    تصدير لملف CSV
+                                </button>
+                                <button class="btn btn-danger" id="btnPrintReport">
+                                    <i class="fa-solid fa-print"></i>
+                                    طباعة التقرير
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card table-card">
+                        <div class="table-wrapper">
+                            <table class="report-table" id="reportTable">
+                                <thead>
+                                    <tr>
+                                        <th>رقم اللوحة</th>
+                                        <th>الإحداثيات</th>
+                                        <th>الحالة</th>
+                                        <th>العميل</th>
+                                        <th>الهاتف</th>
+                                        <th>سعر اللوحة (ج.م)</th>
+                                        <th>تاريخ الاشتراك</th>
+                                        <th>تاريخ الانتهاء</th>
+                                        <th>الموظف المسؤول</th>
+                                        <th>إجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reportTableBody">
+                                    <!-- Dynamic rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Panel 4: Installments Report -->
+                <section id="installmentsPanel" class="content-panel">
+                    <div class="stats-grid">
+                        <div class="stat-card" id="instTotalCard">
+                            <div class="stat-icon bg-gray-light">
+                                <i class="fa-solid fa-money-bill-wave text-red"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="instTotalValue">0 ج.م</h3>
+                                <p>إجمالي قيمة الأقساط</p>
+                            </div>
+                        </div>
+                        <div class="stat-card" id="instCollectedCard">
+                            <div class="stat-icon bg-green-light">
+                                <i class="fa-solid fa-circle-check text-green"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="instCollectedValue">0 ج.م</h3>
+                                <p>الأقساط المحصلة</p>
+                            </div>
+                        </div>
+                        <div class="stat-card" id="instPendingCard">
+                            <div class="stat-icon bg-orange-light">
+                                <i class="fa-solid fa-hourglass-half text-orange"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="instPendingValue">0 ج.م</h3>
+                                <p>الأقساط المعلقة</p>
+                            </div>
+                        </div>
+                        <div class="stat-card" id="instOverdueCard">
+                            <div class="stat-icon bg-red-light">
+                                <i class="fa-solid fa-circle-exclamation text-red"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="instOverdueValue">0 ج.م</h3>
+                                <p>الأقساط المتأخرة</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Personal Sales Statement for Regular Employees -->
+                    <div class="card" id="employeeSalesStatementCard" style="display:none; margin-bottom:24px;">
+                        <h3 style="margin-bottom:12px;"><i class="fa-solid fa-wallet text-red"></i> بيان المبيعات والتحصيل الشخصي الخاص بي</h3>
+                        <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 0;">
+                            <div class="stat-card" style="background:#e6f8f1; border-color:#a7f3d0;">
+                                <div class="stat-icon bg-green-light" style="color:#059669;">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3 id="myCollectedSales">0 ج.م</h3>
+                                    <p>مبيعاتي المحصلة (المستحقة)</p>
+                                </div>
+                            </div>
+                            <div class="stat-card" style="background:#fffbeb; border-color:#fde68a;">
+                                <div class="stat-icon bg-orange-light" style="color:#d97706;">
+                                    <i class="fa-solid fa-hourglass-half"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3 id="myPendingSales">0 ج.م</h3>
+                                    <p>مبيعاتي غير المحصلة (غير المستحقة)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card report-control-card">
+                        <div class="report-filters">
+                            <div class="filter-group">
+                                <label for="filterInstStatus">حالة القسط</label>
+                                <select id="filterInstStatus" class="form-control">
+                                    <option value="all">كل الأقساط</option>
+                                    <option value="pending">المستحقة/المعلقة</option>
+                                    <option value="paid">المحصلة (تم الدفع)</option>
+                                    <option value="overdue">المتأخرة فقط</option>
+                                </select>
+                            </div>
+                            <div class="filter-group" id="adminInstFilterGroup">
+                                <label for="filterInstEmployee">الموظف المسؤول</label>
+                                <select id="filterInstEmployee" class="form-control">
+                                    <option value="all">كل الموظفين</option>
+                                    <!-- Populated dynamically -->
+                                </select>
+                            </div>
+                            <div class="filter-group-buttons">
+                                <button class="btn btn-secondary" id="btnExportInstCSV">
+                                    <i class="fa-solid fa-file-excel"></i>
+                                    تصدير الأقساط
+                                </button>
+                                <button class="btn btn-danger" id="btnPrintInstReport">
+                                    <i class="fa-solid fa-print"></i>
+                                    طباعة الأقساط
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card table-card">
+                        <div class="table-wrapper">
+                            <table class="report-table" id="installmentsTable">
+                                <thead>
+                                    <tr>
+                                        <th>رقم اللوحة</th>
+                                        <th>العميل</th>
+                                        <th>تاريخ الاستحقاق</th>
+                                        <th>مبلغ القسط (ج.م)</th>
+                                        <th>حالة السداد</th>
+                                        <th>الموظف المسؤول</th>
+                                        <th>تغيير الحالة (للإضافة والتعديل)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="installmentsTableBody">
+                                    <!-- Dynamic installments rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Panel 5: Employee Performance -->
+                <section id="employeePanel" class="content-panel">
+                    <div class="employee-layout">
+                        <div class="card employee-table-card">
+                            <h3>تقرير مبيعات الموظفين الـ 10</h3>
+                            <div class="table-wrapper">
+                                <table class="employee-table">
+                                    <thead>
+                                        <tr>
+                                            <th>الموظف</th>
+                                            <th>عدد الحجوزات</th>
+                                            <th>إجمالي المبيعات (ج.م)</th>
+                                            <th>العمولة المحتسبة (5%)</th>
+                                            <th>معدل النشاط</th>
+                                            <th>التقييم</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="employeeTableBody">
+                                        <!-- Dynamic employee rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="card employee-chart-card">
+                            <h3>كفاءة المبيعات للموظفين</h3>
+                            <div class="chart-container">
+                                <canvas id="employeeComparisonChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Panel 6: Settings -->
+                <section id="settingsPanel" class="content-panel">
+                    <div class="settings-grid">
+                        
+                        <!-- Firebase Project Setup configuration instruction -->
+                        <div class="card settings-card">
+                            <h3><i class="fa-solid fa-circle-nodes text-red"></i> إعداد الاتصال السحابي (Firebase)</h3>
+                            <p class="settings-desc">يعمل البرنامج حالياً بنظام محاكاة سحابي محلي لسهولة العرض. لربط البرنامج بالإنترنت فعلياً لمزامنة الموظفين الـ 10، أدخل مفاتيح مشروع Firebase الخاص بشركتك أدناه:</p>
+                            
+                            <form id="firebaseConfigForm" style="display:flex; flex-direction:column; gap:10px;">
+                                <div class="form-group" style="flex-direction:row; align-items:center; justify-content:space-between;">
+                                    <label style="width:120px; font-size:11px;">ApiKey:</label>
+                                    <input type="text" id="fbApiKey" class="form-control" style="flex-grow:1;" placeholder="AIzaSy...">
+                                </div>
+                                <div class="form-group" style="flex-direction:row; align-items:center; justify-content:space-between;">
+                                    <label style="width:120px; font-size:11px;">ProjectId:</label>
+                                    <input type="text" id="fbProjectId" class="form-control" style="flex-grow:1;" placeholder="ht-advertising-app">
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="align-self:flex-end;">حفظ وتطبيق الاتصال</button>
+                            </form>
+                        </div>
+                        
+                        <div class="card settings-card">
+                            <h3><i class="fa-solid fa-database text-red"></i> إدارة قاعدة البيانات السحابية والمحلية</h3>
+                            <p class="settings-desc">يمكنك حفظ نسخ احتياطية خارجية كملف JSON لضمان عدم ضياع العمل، أو تحميلها لاحقاً وتثبيتها في قاعدة البيانات.</p>
+                            
+                            <div class="settings-actions">
+                                <button class="btn btn-secondary" id="btnExportJSON">
+                                    <i class="fa-solid fa-download"></i>
+                                    تصدير النسخة الاحتياطية (JSON)
+                                </button>
+                                
+                                <div class="file-upload-wrapper">
+                                    <button class="btn btn-primary" onclick="document.getElementById('importFile').click()">
+                                        <i class="fa-solid fa-upload"></i>
+                                        استيراد نسخة احتياطية (JSON)
+                                    </button>
+                                    <input type="file" id="importFile" accept=".json" style="display:none">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card settings-card" style="grid-column: span 2;">
+                            <h3><i class="fa-solid fa-trash-can text-red"></i> منطقة خطر (للمدير العام فقط)</h3>
+                            <p class="settings-desc">الإجراء التالي سيؤدي إلى حذف جميع الحجوزات وإعادة تعيين قاعدة البيانات السحابية إلى الصفر. لا يمكن التراجع عن هذا الإجراء!</p>
+                            
+                            <div class="settings-actions">
+                                <button class="btn btn-danger-filled" id="btnResetDB">
+                                    <i class="fa-solid fa-radiation"></i>
+                                    إعادة تعيين كامل قاعدة البيانات السحابية والمحلية
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Panel 7: Chat Room -->
+                <section id="chatPanel" class="content-panel">
+                    <div class="chat-layout">
+                        <!-- Chat Contacts sidebar -->
+                        <div class="card chat-contacts-card">
+                            <h3><i class="fa-solid fa-users text-red"></i> جهات الاتصال</h3>
+                            <div class="chat-contacts-list" id="chatContactsList">
+                                <!-- Populated dynamically based on user role -->
+                            </div>
+                        </div>
+                        
+                        <!-- Main Chat Dialog Box -->
+                        <div class="card chat-window-card">
+                            <div class="chat-header">
+                                <div class="chat-header-avatar" id="activeChatAvatar">
+                                    <i class="fa-solid fa-user-tie"></i>
+                                </div>
+                                <div class="chat-header-info">
+                                    <h4 id="activeChatPartnerName">المدير العام (الإدارة)</h4>
+                                    <p id="activeChatPartnerStatus"><span class="pulse-indicator online"></span> نشط الآن</p>
+                                </div>
+                            </div>
+                            
+                            <div class="chat-messages-container" id="chatMessagesContainer">
+                                <!-- Messages will be dynamically rendered here -->
+                                <div class="chat-placeholder">
+                                    <i class="fa-solid fa-comments"></i>
+                                    <p>اختر جهة اتصال للبدء بالمحادثات التفاعلية الفورية.</p>
+                                </div>
+                            </div>
+                            
+                            <form id="chatForm" class="chat-input-area">
+                                <input type="text" id="chatInput" placeholder="اكتب رسالتك هنا..." required autocomplete="off" disabled>
+                                <button type="submit" class="btn btn-primary" id="btnSendChat" disabled>
+                                    <i class="fa-solid fa-paper-plane"></i> إرسال
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Panel 8: Customers Directory -->
+                <section id="customersPanel" class="content-panel">
+                    <!-- View 8A: Customers Grid/List -->
+                    <div id="customerListView" class="card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                            <h3><i class="fa-solid fa-address-book text-red"></i> دليل العملاء المسجلين</h3>
+                            <div class="search-box" style="margin: 0; width: 300px;">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" id="customerSearch" placeholder="بحث باسم العميل أو رقم الهاتف...">
+                            </div>
+                        </div>
+                        <div class="table-wrapper">
+                            <table class="report-table">
+                                <thead>
+                                    <tr>
+                                        <th>العميل</th>
+                                        <th>رقم الهاتف</th>
+                                        <th>عدد التعاقدات</th>
+                                        <th>إجمالي قيمة العقود</th>
+                                        <th>المستحق</th>
+                                        <th>المتأخر</th>
+                                        <th>الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="customerTableBody">
+                                    <!-- Dynamic list of customers -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- View 8B: Dedicated Customer Profile (Initially hidden) -->
+                    <div id="customerProfileView" style="display:none;">
+                        <button class="btn btn-secondary" id="btnBackToCustomerList" style="margin-bottom:16px;">
+                            <i class="fa-solid fa-arrow-right"></i> العودة لدليل العملاء
+                        </button>
+                        
+                        <div class="card" style="margin-bottom:20px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+                                <div style="display:flex; align-items:center; gap:16px;">
+                                    <div style="width:64px; height:64px; border-radius:50%; background:var(--primary-light); color:var(--primary-color); display:flex; align-items:center; justify-content:center; font-size:28px;">
+                                        <i class="fa-solid fa-user-tie"></i>
+                                    </div>
+                                    <div>
+                                        <h2 id="profCustomerName" style="font-size:20px; font-weight:800;">اسم العميل</h2>
+                                        <p id="profCustomerPhone" style="color:var(--text-muted); font-size:13px; font-weight:600; margin-top:2px;">01012345678</p>
+                                    </div>
+                                </div>
+                                <div style="display:flex; gap:10px;">
+                                    <button class="btn btn-whatsapp" id="btnProfWhatsApp">
+                                        <i class="fa-brands fa-whatsapp"></i> مراسلة العميل عبر واتساب
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Customer metrics grid -->
+                        <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr); margin-bottom:20px;">
+                            <div class="stat-card">
+                                <div class="stat-icon bg-gray-light">
+                                    <i class="fa-solid fa-rectangle-ad text-red"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3 id="profTotalBillboards">0 لوحات</h3>
+                                    <p>إجمالي اللوحات المتعاقد عليها</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon bg-green-light">
+                                    <i class="fa-solid fa-money-bill-wave text-green"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3 id="profTotalContractsValue">0 ج.م</h3>
+                                    <p>إجمالي قيمة التعاقدات المالية</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Customer Booking History Table -->
+                        <div class="card">
+                            <h3 style="margin-bottom:16px;"><i class="fa-solid fa-clock-rotate-left text-red"></i> سجل إعلانات وحجوزات العميل (منذ أول اشتراك)</h3>
+                            <div class="table-wrapper">
+                                <table class="report-table">
+                                    <thead>
+                                        <tr>
+                                            <th>رقم اللوحة</th>
+                                            <th>مدة الاشتراك</th>
+                                            <th>تاريخ البدء</th>
+                                            <th>تاريخ الانتهاء</th>
+                                            <th>سعر الإيجار</th>
+                                            <th>الموظف المسؤول</th>
+                                            <th>حالة الإعلان</th>
+                                            <th>الموقع</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="profCustomerBookingsBody">
+                                        <!-- Dynamic historical bookings rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Panel: Cloud Connections & Sync Status -->
+                <section id="cloudPanel" class="content-panel">
+                    <div style="max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; padding-bottom: 30px;">
+                        
+                        <!-- Main Status Card -->
+                        <div class="card" style="padding: 24px; border-radius: 16px; position: relative; overflow: hidden; background: linear-gradient(135deg, var(--bg-card) 0%, rgba(56,189,248,0.05) 100%);">
+                            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+                                <div>
+                                    <span style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#38bdf8; font-weight:800; display:block; margin-bottom:4px;">حالة النظام السحابي</span>
+                                    <h2 style="font-family:'Cairo'; font-weight:900; color:var(--text-main); margin:0; font-size:22px; display:flex; align-items:center; gap:10px;">
+                                        <i class="fa-solid fa-cloud-arrow-up" style="color:#38bdf8;"></i> بوابة الاتصالات السحابية اللحظية
+                                    </h2>
+                                </div>
+                                <div id="cloudConnectionBadge" style="background:rgba(16,185,129,0.1); border:1px solid #10b981; color:#10b981; padding:8px 16px; border-radius:30px; font-weight:800; font-size:12px; display:flex; align-items:center; gap:8px;">
+                                    <span class="pulse-green-dot" style="width:10px; height:10px; background:#10b981; border-radius:50%; display:inline-block; box-shadow: 0 0 8px #10b981;"></span>
+                                    <span id="cloudStatusLabel">متصل سحابياً (مزامنة لحظية)</span>
+                                </div>
+                            </div>
+                            
+                            <p style="font-size:12px; color:var(--text-muted); margin-top:12px; max-width:600px;">
+                                هذا القسم يتيح لك تتبع حركة البيانات السحابية بين كافة الموظفين الـ 10 والمدير العام في نفس الثانية. كل حجز أو تعديل تقوم به يتم رفعه فوراً ومزامنته على شاشات زملائك النشطين أونلاين.
+                            </p>
+                            
+                            <div style="display:flex; gap:12px; margin-top:20px; flex-wrap:wrap;">
+                                <button class="btn btn-primary" id="btnTestCloudSync" style="border-radius:30px; padding:10px 20px; font-size:12px; font-weight:700; background:linear-gradient(135deg,#38bdf8 0%,#0284c7 100%); border:none; display:flex; align-items:center; gap:8px;">
+                                    <i class="fa-solid fa-wifi"></i> فحص واختبار سرعة الاتصال
+                                </button>
+                                <button class="btn btn-secondary" id="btnForceSyncCloud" style="border-radius:30px; padding:10px 20px; font-size:12px; font-weight:700; display:flex; align-items:center; gap:8px;">
+                                    <i class="fa-solid fa-arrows-rotate"></i> مزامنة قسرية للبيانات الآن
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; flex-wrap:wrap;">
+                            <!-- Active Employees Sync status card -->
+                            <div class="card" style="padding:20px; border-radius:16px;">
+                                <h3 style="font-family:'Cairo'; font-weight:800; font-size:15px; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                                    <i class="fa-solid fa-users" style="color:#38bdf8;"></i> حالة اتصال الموظفين الـ 10 بالخادم
+                                </h3>
+                                <div style="display:flex; flex-direction:column; gap:10px;" id="cloudEmployeesActiveList">
+                                    <!-- Dynamic employees connection cards populated in app.js -->
+                                </div>
+                            </div>
+                            
+                            <!-- Real-time sync activity log -->
+                            <div class="card" style="padding:20px; border-radius:16px; display: flex; flex-direction: column;">
+                                <h3 style="font-family:'Cairo'; font-weight:800; font-size:15px; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                                    <i class="fa-solid fa-clock-rotate-left" style="color:#38bdf8;"></i> سجل النشاط والمزامنة اللحظي
+                                </h3>
+                                <div style="flex-grow:1; max-height: 320px; overflow-y: auto; display:flex; flex-direction:column; gap:10px; padding-left:4px;" id="cloudActivityFeedList">
+                                    <!-- Dynamic activity logs populated in app.js -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </section>
+                
+                <!-- Panel 9: Used Sizes Catalog -->
+                <section id="sizesPanel" class="content-panel">
+                    <div style="max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; padding-bottom: 30px;">
+
+                        <!-- Catalog Image Card — Original poster as uploaded -->
+                        <div class="card" style="padding: 20px; border-radius: 16px;">
+                            <h2 style="font-family: 'Cairo'; font-weight: 800; color: var(--text-main); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; font-size: 18px;">
+                                <i class="fa-solid fa-ruler-combined" style="color: var(--primary-color);"></i> دليل المقاسات المتاحة — HT Advertising
+                            </h2>
+                            <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 16px;">
+                                الكتالوج الرسمي للمقاسات المعتمدة لجميع لوحات كورنيش السويس الإعلانية
+                            </p>
+                            <div style="display: flex; justify-content: center; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); background: #fff;">
+                                <img src="sizes_catalog_original.jpg" alt="كتالوج مقاسات HT Advertising — الأصلي"
+                                     style="width: 100%; max-width: 560px; height: auto; object-fit: contain; display: block;">
+                            </div>
+                        </div>
+
+                        <!-- Sizes Quick Reference Grid -->
+                        <div class="card" style="padding: 20px; border-radius: 16px;">
+                            <h3 style="font-weight: 800; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-table-cells" style="color: var(--primary-color);"></i> جدول المقاسات التفصيلي
+                            </h3>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;">
+                                <div style="background: linear-gradient(135deg, #E50914 0%, #B91C1C 100%); border-radius: 12px; padding: 16px; color: white; text-align: center;">
+                                    <div style="font-size: 28px; font-weight: 900; line-height: 1;">3×6</div>
+                                    <div style="font-size: 11px; opacity: 0.85; margin-top: 4px;">متر — وجهين</div>
+                                    <div style="font-size: 10px; opacity: 0.7; margin-top: 6px; border-top: 1px solid rgba(255,255,255,0.3); padding-top: 6px;">مساحة: 18 م²</div>
+                                </div>
+                                <div style="background: linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%); border-radius: 12px; padding: 16px; color: white; text-align: center;">
+                                    <div style="font-size: 28px; font-weight: 900; line-height: 1;">3×4</div>
+                                    <div style="font-size: 11px; opacity: 0.85; margin-top: 4px;">متر — وجه واحد / وجهين</div>
+                                    <div style="font-size: 10px; opacity: 0.7; margin-top: 6px; border-top: 1px solid rgba(255,255,255,0.3); padding-top: 6px;">مساحة: 12 م²</div>
+                                </div>
+                                <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 12px; padding: 16px; color: white; text-align: center;">
+                                    <div style="font-size: 28px; font-weight: 900; line-height: 1;">2×3</div>
+                                    <div style="font-size: 11px; opacity: 0.85; margin-top: 4px;">متر</div>
+                                    <div style="font-size: 10px; opacity: 0.7; margin-top: 6px; border-top: 1px solid rgba(255,255,255,0.3); padding-top: 6px;">مساحة: 6 م²</div>
+                                </div>
+                                <div style="background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%); border-radius: 12px; padding: 16px; color: white; text-align: center;">
+                                    <div style="font-size: 28px; font-weight: 900; line-height: 1;">3×1.5</div>
+                                    <div style="font-size: 11px; opacity: 0.85; margin-top: 4px;">متر</div>
+                                    <div style="font-size: 10px; opacity: 0.7; margin-top: 6px; border-top: 1px solid rgba(255,255,255,0.3); padding-top: 6px;">مساحة: 4.5 م²</div>
+                                </div>
+                                <div style="background: linear-gradient(135deg, #D97706 0%, #B45309 100%); border-radius: 12px; padding: 16px; color: white; text-align: center;">
+                                    <div style="font-size: 28px; font-weight: 900; line-height: 1;">2×2</div>
+                                    <div style="font-size: 11px; opacity: 0.85; margin-top: 4px;">متر — وجه واحد / وجهين</div>
+                                    <div style="font-size: 10px; opacity: 0.7; margin-top: 6px; border-top: 1px solid rgba(255,255,255,0.3); padding-top: 6px;">مساحة: 4 م²</div>
+                                </div>
+                                <div style="background: linear-gradient(135deg, #0891B2 0%, #0E7490 100%); border-radius: 12px; padding: 16px; color: white; text-align: center;">
+                                    <div style="font-size: 28px; font-weight: 900; line-height: 1;">2×1</div>
+                                    <div style="font-size: 11px; opacity: 0.85; margin-top: 4px;">متر — فانوس</div>
+                                    <div style="font-size: 10px; opacity: 0.7; margin-top: 6px; border-top: 1px solid rgba(255,255,255,0.3); padding-top: 6px;">مساحة: 2 م²</div>
+                                </div>
+                                <div style="background: linear-gradient(135deg, #475569 0%, #334155 100%); border-radius: 12px; padding: 16px; color: white; text-align: center;">
+                                    <div style="font-size: 22px; font-weight: 900; line-height: 1;">1.25×2</div>
+                                    <div style="font-size: 11px; opacity: 0.85; margin-top: 4px;">متر — معلق</div>
+                                    <div style="font-size: 10px; opacity: 0.7; margin-top: 6px; border-top: 1px solid rgba(255,255,255,0.3); padding-top: 6px;">مساحة: 2.5 م²</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contact / Booking CTA -->
+                        <div class="card" style="padding: 20px; border-radius: 16px; background: linear-gradient(135deg, #1A1A1E 0%, #2A2A2E 100%); border: 1px solid rgba(229,9,20,0.3);">
+                            <div style="text-align: center;">
+                                <p style="color: rgba(255,255,255,0.6); font-size: 13px; margin-bottom: 8px;">للحجز والاستفسار تواصل معنا الآن</p>
+                                <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 10px;">
+                                    <a href="tel:01158171415" style="background: var(--primary-color); color: white; padding: 10px 20px; border-radius: 50px; font-size: 16px; font-weight: 900; text-decoration: none; display: flex; align-items: center; gap: 6px;">
+                                        <i class="fa-solid fa-phone"></i> 01158171415
+                                    </a>
+                                    <a href="tel:01062492424" style="background: #25D366; color: white; padding: 10px 20px; border-radius: 50px; font-size: 16px; font-weight: 900; text-decoration: none; display: flex; align-items: center; gap: 6px;">
+                                        <i class="fa-brands fa-whatsapp"></i> 01062492424
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Panel 10: Employees & Permissions Management -->
+                <section id="employeesMgmtPanel" class="content-panel">
+                    <div style="max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; padding-bottom: 30px;">
+                        
+                        <!-- Add Employee Card -->
+                        <div class="card" style="padding:20px; border-radius:16px;">
+                            <h3 style="font-family:'Cairo'; font-weight:800; color:var(--text-main); margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+                                <i class="fa-solid fa-user-plus" style="color:var(--primary-color);"></i> إضافة موظف جديد وتحديد صلاحياته
+                            </h3>
+                            <form id="addEmployeeForm" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px; align-items:end;">
+                                <div class="form-group" style="margin:0;">
+                                    <label style="font-size:11px; font-weight:700;">الاسم الكامل *</label>
+                                    <input type="text" id="newEmpName" class="form-control" required placeholder="مثال: يوسف أحمد">
+                                </div>
+                                <div class="form-group" style="margin:0;">
+                                    <label style="font-size:11px; font-weight:700;">البريد الإلكتروني *</label>
+                                    <input type="email" id="newEmpEmail" class="form-control" required placeholder="example@ht-adv.com">
+                                </div>
+                                <div class="form-group" style="margin:0;">
+                                    <label style="font-size:11px; font-weight:700;">اسم المستخدم (Username) *</label>
+                                    <input type="text" id="newEmpUsername" class="form-control" required placeholder="مثال: emp11">
+                                </div>
+                                <div class="form-group" style="margin:0;">
+                                    <label style="font-size:11px; font-weight:700;">كلمة المرور *</label>
+                                    <input type="text" id="newEmpPassword" class="form-control" required placeholder="كلمة المرور">
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="height:38px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px;">
+                                    <i class="fa-solid fa-plus"></i> إضافة الموظف
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <!-- Employees List Table & Permissions -->
+                        <div class="card" style="padding:20px; border-radius:16px;">
+                            <h3 style="font-family:'Cairo'; font-weight:800; color:var(--text-main); margin-bottom:16px;">
+                                <i class="fa-solid fa-users" style="color:var(--primary-color);"></i> إدارة الموظفين وصلاحيات الوصول للأقسام
+                            </h3>
+                            <div class="table-wrapper">
+                                <table class="report-table">
+                                    <thead>
+                                        <tr>
+                                            <th>الموظف</th>
+                                            <th>اسم المستخدم</th>
+                                            <th>كلمة المرور</th>
+                                            <th>البريد الإلكتروني</th>
+                                            <th style="min-width:320px;">الصلاحيات الفعالة للأقسام</th>
+                                            <th>الإجراءات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="employeesMgmtTableBody">
+                                        <!-- Populated dynamically via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+            </div>
+        </main>
+        
+        <!-- Registration Modal Form -->
+        <div class="modal" id="bookingModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modalTitle">تسجيل حجز جديد للوحة #000</h3>
+                    <button class="close-modal" id="btnCloseModal">&times;</button>
+                </div>
+                <form id="bookingForm" class="modal-form">
+                    <input type="hidden" id="billboardId" name="billboardId">
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="clientName"><i class="fa-solid fa-user"></i> اسم العميل *</label>
+                            <input type="text" id="clientName" name="clientName" required placeholder="مثال: شركة النيل للتطوير العقاري">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="clientPhone"><i class="fa-solid fa-phone"></i> رقم الهاتف *</label>
+                            <input type="tel" id="clientPhone" name="clientPhone" required placeholder="مثال: 01012345678">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="clientEmail"><i class="fa-solid fa-envelope"></i> البريد الإلكتروني</label>
+                            <input type="email" id="clientEmail" name="clientEmail" placeholder="example@domain.com">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="billboardPrice"><i class="fa-solid fa-tags"></i> سعر اللوحة (ج.م / شهرياً) *</label>
+                            <input type="number" id="billboardPrice" name="billboardPrice" required min="1000" placeholder="مثال: 7500">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="billboardDimensions"><i class="fa-solid fa-maximize"></i> مقاس اللوحة *</label>
+                            <select id="billboardDimensions" name="billboardDimensions" class="form-control" required style="padding: 10px; font-weight: 700;">
+                                <option value="3×6 وجهين">3×6 وجهين</option>
+                                <option value="3×4 وجه واحد">3×4 وجه واحد</option>
+                                <option value="3×4 وجهين">3×4 وجهين</option>
+                                <option value="2×3">2×3</option>
+                                <option value="3×1.50">3×1.50</option>
+                                <option value="2×2 وجه واحد">2×2 وجه واحد</option>
+                                <option value="2×2 وجهين">2×2 وجهين</option>
+                                <option value="فانوس 2×1">فانوس 2×1</option>
+                                <option value="1.25 × 2 معلق">1.25 × 2 معلق</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Subscription Plan Selector -->
+                        <div class="form-group full-width" id="subscriptionPlanGroup">
+                            <label style="font-weight:800; font-size:13px;"><i class="fa-solid fa-calendar-check"></i> مدة الاشتراك *</label>
+                            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:8px;" id="subscriptionPlanCards">
+                                <label class="plan-card" data-months="1">
+                                    <input type="radio" name="subscriptionPlan" value="1" required>
+                                    <div class="plan-card-inner">
+                                        <div class="plan-icon">📅</div>
+                                        <div class="plan-title">شهري</div>
+                                        <div class="plan-sub">1 شهر</div>
+                                    </div>
+                                </label>
+                                <label class="plan-card" data-months="3">
+                                    <input type="radio" name="subscriptionPlan" value="3">
+                                    <div class="plan-card-inner">
+                                        <div class="plan-icon">🗓️</div>
+                                        <div class="plan-title">ربع سنوي</div>
+                                        <div class="plan-sub">3 أشهر</div>
+                                    </div>
+                                </label>
+                                <label class="plan-card" data-months="6">
+                                    <input type="radio" name="subscriptionPlan" value="6">
+                                    <div class="plan-card-inner">
+                                        <div class="plan-icon">✨</div>
+                                        <div class="plan-title">نصف سنوي</div>
+                                        <div class="plan-sub">6 أشهر</div>
+                                    </div>
+                                </label>
+                                <label class="plan-card" data-months="12">
+                                    <input type="radio" name="subscriptionPlan" value="12">
+                                    <div class="plan-card-inner">
+                                        <div class="plan-icon">🏆</div>
+                                        <div class="plan-title">سنوي</div>
+                                        <div class="plan-sub">12 شهر</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="startDate"><i class="fa-solid fa-calendar-plus"></i> بداية الإعلان *</label>
+                            <input type="date" id="startDate" name="startDate" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="endDate"><i class="fa-solid fa-calendar-minus"></i> نهاية الإعلان (تلقائي حسب الخطة)</label>
+                            <input type="date" id="endDate" name="endDate" required style="background:rgba(16,185,129,0.08); border-color:#10B981;"><br/>
+                            <span style="font-size:10px; color:var(--text-muted);"><i class="fa-solid fa-circle-info"></i> يتم حسابها تلقائياً عند اختيار الخطة والتاريخ</span>
+                        </div>
+                        
+                        <div class="form-group full-width">
+                            <label for="notes"><i class="fa-solid fa-comment-dots"></i> ملاحظات الحجز</label>
+                            <textarea id="notes" name="notes" rows="2" placeholder="أدخل أي ملاحظات خاصة باللوحة أو تصميم الإعلان..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" id="btnCancelModal">إلغاء</button>
+                        <button type="button" class="btn btn-danger-filled" id="btnReleaseBooking" style="display:none;">
+                            <i class="fa-solid fa-trash"></i> إلغاء الحجز الحالي (مدير عام فقط)
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="btnSaveBooking">حفظ بيانات الحجز</button>
+                    </div>
+                </form>
+            </div>
+    </div>
+    
+    <!-- Profile Chooser Modal Overlay (Initially hidden) -->
+    <div id="profileChooserScreen" class="login-screen-overlay" style="display:none; z-index: 10000; background: rgba(0,0,0,0.85);">
+        <div class="login-box" style="max-width: 420px; text-align: center; max-height: 90vh; display: flex; flex-direction: column;">
+            <div class="login-logo-container">
+                <img src="logo.png" alt="HT Logo" class="login-logo">
+                <h2 style="font-family:'Cairo'; font-weight:900; font-size:20px; color:var(--text-main);">من فضلك اختر حسابك الشخصي</h2>
+                <p style="font-size:12px; color:var(--text-muted); margin-top:4px;">تمت المصادقة بنجاح باستخدام بريد الشركة الموحد</p>
+            </div>
+            
+            <div style="display:flex; flex-direction:column; gap:8px; margin-top:20px; overflow-y:auto; flex-grow:1; padding-right:4px;" id="profileChooserButtonsList">
+                <!-- Buttons populated dynamically via JS -->
+            </div>
+            
+            <button class="btn btn-secondary btn-full-width" onclick="location.reload()" style="margin-top:20px; border-radius:30px; padding:10px;">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> إلغاء وتسجيل الخروج
+            </button>
+        </div>
+    </div>
+    
+    <!-- Firebase SDK Compat libraries (runs client-side, zero server dependencies) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+    <!-- Leaflet JS Library -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <!-- Leaflet Rotate JS -->
+    <script src="https://unpkg.com/leaflet-rotate@0.2.8/dist/leaflet-rotate.js"></script>
+    
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- App JavaScript Logic -->
+    <script src="app.js"></script>
+</body>
+</html>
